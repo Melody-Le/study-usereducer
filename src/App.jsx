@@ -1,11 +1,38 @@
-import { useState } from "react";
+import { useEffect, useReducer } from "react";
 import "./App.css";
-import DateCounter from "./DateCounter";
+import MainContent from "./Content";
+import Header from "./Header";
+const initialState = {
+  questions: [],
+  //"loading","error","ready","active","finised"
+  status: "loading",
+};
+function reducer(state, action) {
+  switch (action.type) {
+    case "dataReceived":
+      return { ...state, questions: action.payload, status: "ready" };
+    case "dataFailed":
+      return { ...state, status: "error" };
+    default:
+      throw new Error("Action unknown");
+  }
+}
 
 function App() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  useEffect(() => {
+    fetch("http://localhost:8000/questions")
+      .then((res) => res.json())
+      .then((data) => dispatch({ type: "dataReceived", payload: data }))
+      .catch((err) => dispatch({ type: "dataFailed" }));
+  }, []);
   return (
-    <div>
-      <DateCounter />
+    <div className="app">
+      <Header />
+      <MainContent>
+        <p>1/15</p>
+        <p>Question</p>
+      </MainContent>
     </div>
   );
 }
